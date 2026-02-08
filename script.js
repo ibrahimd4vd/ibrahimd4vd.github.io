@@ -1,4 +1,4 @@
-// 1. DEĞİŞKENLER
+// 1. DEĞİŞKENLER VE ELEMENTLER
 const alarmSound = document.getElementById('alarm-sound');
 const display = document.getElementById('timer-display');
 const statusLabel = document.getElementById('status-label');
@@ -9,7 +9,7 @@ const pauseBtn = document.getElementById('pause-btn');
 const resetBtn = document.getElementById('reset-btn');
 const modeButtons = document.querySelectorAll('.mode-btn');
 
-// Yeni Eklenen Fonksiyonel Değişkenler
+// Fonksiyonel Özellik Değişkenleri
 let sessions = 0;
 const sessionsDisplay = document.getElementById('sessions-completed');
 const todoInput = document.getElementById('todo-input');
@@ -20,7 +20,7 @@ let isWorking = true;
 let timeLeft = parseInt(workInput.value) * 60;
 let alertInterval = null;
 
-// 2. GÖRÜNTÜ GÜNCELLEME
+// 2. GÖRÜNTÜLEME FONKSİYONU
 function updateDisplay() {
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
@@ -28,6 +28,7 @@ function updateDisplay() {
     
     if (display) display.textContent = timeString;
     
+    // Sekme yanıp sönmüyorsa başlıkta süreyi göster
     if (!alertInterval) {
         document.title = `(${timeString}) Pomodoro`;
     }
@@ -73,7 +74,18 @@ function switchMode() {
     updateDisplay();
 }
 
-// 5. EVENT LISTENERS (DİNLEYİCİLER)
+// 5. ANLIK SÜRE GÜNCELLEME (Input dinleyicisi)
+function handleInputChange() {
+    if (timerId === null) {
+        timeLeft = (isWorking ? parseInt(workInput.value) : parseInt(breakInput.value)) * 60;
+        updateDisplay();
+    }
+}
+
+workInput.addEventListener('input', handleInputChange);
+breakInput.addEventListener('input', handleInputChange);
+
+// 6. ANA KONTROLLER (Event Listeners)
 startBtn.addEventListener('click', () => {
     if (timerId !== null) return;
     stopTabAlert();
@@ -105,17 +117,17 @@ resetBtn.addEventListener('click', () => {
     updateDisplay();
 });
 
-// To-Do List Ekleme
+// To-Do List Ekleme Mantığı
 if (todoInput) {
     todoInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && todoInput.value.trim() !== "") {
             const li = document.createElement('li');
-            li.innerHTML = `${todoInput.value} <span style="cursor:pointer; color:red; margin-left:10px;" onclick="this.parentElement.remove()">✕</span>`;
+            li.innerHTML = `${todoInput.value} <span style="cursor:pointer; color:red; font-weight:bold; margin-left:10px;" onclick="this.parentElement.remove()">✕</span>`;
             todoList.appendChild(li);
             todoInput.value = "";
         }
     });
 }
 
-// İlk açılışta süreyi göster
+// İlk çalışma
 updateDisplay();
