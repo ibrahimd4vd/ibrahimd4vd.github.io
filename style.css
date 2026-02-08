@@ -108,3 +108,42 @@ body.break-mode {
 body.break-mode header {
     background-color: #2ecc71; /* Canlı yeşil header */
 }
+/* --- MOBİL UYUMLULUK (RESPONSIVE) --- */
+
+/* Ekran genişliği 600px ve altına düştüğünde (Telefonlar için) */
+@media (max-width: 600px) {
+    .pomodoro-container {
+        width: 90%; /* Kutuyu ekranın yanlarına çok yaklaştırmaz */
+        margin: 20px auto;
+        padding: 20px 15px;
+    }
+
+    #timer-display {
+        font-size: 60px; /* Sayaç sayısını mobilde biraz küçültüyoruz */
+    }
+
+    .settings {
+        flex-direction: column; /* "Çalışma" ve "Mola" kutularını alt alta koyar */
+        gap: 10px;
+        align-items: center;
+    }
+
+    .modes {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Hazır mod butonlarını 2'li sıra yapar */
+        gap: 8px;
+        margin-bottom: 25px;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column; /* Başlat/Durdur/Sıfırla butonlarını alt alta dizer */
+        gap: 10px;
+    }
+
+    .controls .main-btn {
+        width: 100%; /* Butonlar parmakla kolay basılsın diye tam genişlik olur */
+        padding: 15px;
+        margin: 0;
+    }
+}
