@@ -208,7 +208,7 @@ body.break-mode header {
 /* KARANLIK MOD RENKLERİ */
 body.dark-theme {
     background-color: #1e272e !important; /* Koyu gri/siyah arka plan */
-    color: #f5f6fa;
+    color: #f5f6fa !important;
 }
 
 body.dark-theme .pomodoro-container {
