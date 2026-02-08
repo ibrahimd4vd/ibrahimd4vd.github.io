@@ -59,7 +59,10 @@ function switchMode(manualMode = null) {
     document.body.classList.remove('work-mode', 'break-mode');
 
     if (manualMode === null) {
-        if (alarmSound) { alarmSound.currentTime = 0; alarmSound.play().catch(() => {}); }
+        if (alarmSound) { 
+            alarmSound.currentTime = 0; 
+            alarmSound.play().catch(e => console.log("Ses çalınamadı:", e)); 
+        }
         startTabAlert();
         
         // Çalışma bittiyse seansı artır ve KAYDET
@@ -67,6 +70,12 @@ function switchMode(manualMode = null) {
             sessions++;
             localStorage.setItem('sessions', sessions);
             if (sessionsDisplay) sessionsDisplay.textContent = sessions;
+            
+            // 4 Pomodoro'da 1 uzun mola (15 dakika)
+            if (sessions % 4 === 0) {
+                breakInput.value = 15;
+                localStorage.setItem('breakTime', breakInput.value);
+            }
         }
     }
 
@@ -76,42 +85,36 @@ function switchMode(manualMode = null) {
     updateDisplay();
 }
 
-// 5.  ÖZEL BUTONLAR (Klasik, Focus, Exam)
+// 5. ÖZEL BUTONLAR (Klasik, Focus, Exam)
 modeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         clearInterval(timerId);
         timerId = null;
         stopTabAlert();
         
-        const modeText = btn.textContent.trim().toLowerCase();
+        const modeText = btn.dataset.mode || btn.textContent.trim().toLowerCase();
         
-        // Görseldeki isimlere göre süre atamaları
-        document.body.classList.remove('work-mode', 'break-mode');
+        const modes = {
+            'klasik': { work: 25, break: 5, label: "Klasik Mod" },
+            'focus': { work: 50, break: 10, label: "Derin Odaklanma" },
+            'exam': { work: 75, break: 15, label: "Sınav Modu" }
+        };
         
-        if (modeText === 'klasik') {
-            workInput.value = 25;
+        if (modes[modeText]) {
+            workInput.value = modes[modeText].work;
+            breakInput.value = modes[modeText].break;
             isWorking = true;
-            statusLabel.textContent = "Klasik Mod";
+            statusLabel.textContent = modes[modeText].label;
+            
+            // Seçilen süreleri kaydet
+            localStorage.setItem('workTime', workInput.value);
+            localStorage.setItem('breakTime', breakInput.value);
+            
+            timeLeft = parseInt(workInput.value) * 60;
+            document.body.classList.remove('work-mode', 'break-mode');
             document.body.classList.add('work-mode');
-        } else if (modeText === 'focus') {
-            workInput.value = 50; 
-            isWorking = true;
-            statusLabel.textContent = "Derin Odaklanma";
-            document.body.classList.add('work-mode');
-        } else if (modeText === 'exam') {
-            workInput.value = 75; 
-            isWorking = true;
-            statusLabel.textContent = "Sınav Modu!";
-            document.body.classList.add('work-mode');
+            updateDisplay();
         }
-
-        // Seçilen süreyi kaydet ve uygula
-        localStorage.setItem('workTime', workInput.value);
-        timeLeft = parseInt(workInput.value) * 60;
-        
-        document.body.classList.remove('work-mode', 'break-mode');
-        document.body.classList.add(isWorking ? 'work-mode' : 'break-mode');
-        updateDisplay();
     });
 });
 
@@ -128,19 +131,39 @@ function handleInputChange() {
 workInput.addEventListener('input', handleInputChange);
 breakInput.addEventListener('input', handleInputChange);
 
-// 7. ANA KONTROLLER
+// 7. ANA KONTROLLER - Sayfa görünürlüğü düzeltmesi ile
 startBtn.addEventListener('click', () => {
     if (timerId !== null) return;
     stopTabAlert();
+    
+    let lastUpdate = Date.now();
+    let accumulatedTime = 0;
+    
     timerId = setInterval(() => {
-        timeLeft--;
-        updateDisplay();
+        const now = Date.now();
+        const elapsed = now - lastUpdate;
+        lastUpdate = now;
+        
+        // Sayfa görünür değilse zamanı biriktir
+        if (document.hidden) {
+            accumulatedTime += elapsed;
+            // 1 saniyeden fazla biriktiyse güncelle
+            if (accumulatedTime >= 1000) {
+                timeLeft -= Math.floor(accumulatedTime / 1000);
+                accumulatedTime %= 1000;
+                updateDisplay();
+            }
+        } else {
+            timeLeft--;
+            updateDisplay();
+        }
+        
         if (timeLeft <= 0) {
             clearInterval(timerId);
             timerId = null;
             switchMode();
         }
-    }, 1000);
+    }, 100);
 });
 
 pauseBtn.addEventListener('click', () => {
@@ -157,15 +180,28 @@ resetBtn.addEventListener('click', () => {
         if (sessionsDisplay) sessionsDisplay.textContent = 0;
         isWorking = true;
         stopTabAlert();
-        switchMode(true);
+        
+        // Başlangıç değerlerine dön
+        workInput.value = 25;
+        breakInput.value = 5;
+        localStorage.setItem('workTime', 25);
+        localStorage.setItem('breakTime', 5);
+        
+        timeLeft = parseInt(workInput.value) * 60;
+        document.body.classList.remove('work-mode', 'break-mode');
+        document.body.classList.add('work-mode');
+        statusLabel.textContent = "Odaklanma Zamanı";
+        updateDisplay();
     }
 });
 
-// 8. TODO LİSTESİ KAYIT SİSTEMİ
+// 8. TODO LİSTESİ KAYIT SİSTEMİ - Güvenlik düzeltmesi ile
 function saveTodos() {
     const todos = [];
     document.querySelectorAll('#todo-list li').forEach(li => {
-        todos.push(li.innerText.replace('✕', '').trim());
+        // Sadece metin içeriğini al (X butonunu çıkar)
+        const todoText = li.childNodes[0].textContent || li.innerText.replace('✕', '').trim();
+        todos.push(todoText);
     });
     localStorage.setItem('todos', JSON.stringify(todos));
 }
@@ -177,7 +213,18 @@ function loadTodos() {
 
 function addTodoToDOM(text) {
     const li = document.createElement('li');
-    li.innerHTML = `${text} <span style="cursor:pointer; color:red; font-weight:bold; margin-left:10px;" onclick="this.parentElement.remove(); saveTodos();">✕</span>`;
+    const todoText = document.createTextNode(text);
+    const deleteSpan = document.createElement('span');
+    
+    deleteSpan.textContent = ' ✕';
+    deleteSpan.style.cssText = 'cursor:pointer; color:red; font-weight:bold; margin-left:10px;';
+    deleteSpan.addEventListener('click', function() {
+        this.parentElement.remove();
+        saveTodos();
+    });
+    
+    li.appendChild(todoText);
+    li.appendChild(deleteSpan);
     todoList.appendChild(li);
 }
 
@@ -191,7 +238,7 @@ if (todoInput) {
     });
 }
 
-// 9. KARANLIK MOD (Hafıza zaten içindeydi)
+// 9. KARANLIK MOD
 const darkModeToggle = document.getElementById('dark-mode-toggle');
 if (darkModeToggle) {
     if (localStorage.getItem('dark-mode') === 'enabled') {
@@ -206,6 +253,22 @@ if (darkModeToggle) {
     });
 }
 
+// 10. BAŞLANGIÇ MODU TUTARLILIĞI
+function initializeMode() {
+    const savedWorkTime = localStorage.getItem('workTime') || 25;
+    const savedBreakTime = localStorage.getItem('breakTime') || 5;
+    
+    workInput.value = savedWorkTime;
+    breakInput.value = savedBreakTime;
+    
+    // Varsayılan modu ayarla
+    isWorking = true;
+    timeLeft = parseInt(savedWorkTime) * 60;
+    statusLabel.textContent = "Odaklanma Zamanı";
+    document.body.classList.add('work-mode');
+    updateDisplay();
+}
+
 // Başlangıç Yüklemesi
 loadTodos();
-updateDisplay();
+initializeMode();
