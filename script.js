@@ -28,6 +28,8 @@ function switchMode() {
     // Sayfa renklerini temizle ve yeni modu ekle
     document.body.classList.remove('work-mode', 'break-mode');
 
+    alarmSound.play();
+    
     if (isWorking) {
         timeLeft = parseInt(workInput.value) * 60;
         statusLabel.textContent = "Odaklanma Zamanı";
