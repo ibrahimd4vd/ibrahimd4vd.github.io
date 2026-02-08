@@ -128,6 +128,25 @@ if (todoInput) {
         }
     });
 }
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+// Sayfa yüklendiğinde eski tercihi kontrol et
+if (localStorage.getItem('dark-mode') === 'enabled') {
+    document.body.classList.add('dark-theme');
+    darkModeToggle.textContent = '☀️'; // Güneş ikonu yap
+}
+
+darkModeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+    
+    if (document.body.classList.contains('dark-theme')) {
+        localStorage.setItem('dark-mode', 'enabled');
+        darkModeToggle.textContent = '☀️';
+    } else {
+        localStorage.setItem('dark-mode', 'disabled');
+        darkModeToggle.textContent = '🌙';
+    }
+});
 
 // İlk çalışma
 updateDisplay();
