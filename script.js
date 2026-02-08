@@ -12,6 +12,28 @@ let timerId = null;
 let isWorking = true;
 let timeLeft = parseInt(workInput.value) * 60;
 
+// Yanıp sönme efekti için değişken
+let alertInterval = null;
+
+// SEKME BAŞLIĞINI YANIP SÖNDÜRME FONKSİYONU
+function startTabAlert() {
+    if (alertInterval) return; // Zaten çalışıyorsa başlatma
+    
+    let isAlertMsg = true;
+    alertInterval = setInterval(() => {
+        document.title = isAlertMsg ? "!!! SÜRE BİTTİ !!!" : "Pomodoro Sayaç";
+        isAlertMsg = !isAlertMsg;
+    }, 500); // Yarım saniyede bir değişir
+}
+
+// BİLDİRİMİ DURDURMA FONKSİYONU (Başlat veya Reset'e basınca çalışacak)
+function stopTabAlert() {
+    clearInterval(alertInterval);
+    alertInterval = null;
+    // Başlığı normale döndür
+    updateDisplay(); 
+}
+
 function updateDisplay() {
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
