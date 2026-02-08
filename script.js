@@ -30,11 +30,11 @@ function switchMode() {
     isWorking = !isWorking; // Modu tam tersine çevir
     
     if (isWorking) {
-        timeLeft = 25 * 60; // Çalışma süresi
+        timeLeft = 10; // Çalışma süresi
         statusLabel.textContent = "Odaklanma Zamanı";
         alert("Mola bitti, hadi iş başına!");
     } else {
-        timeLeft = 5 * 60; // Mola süresi
+        timeLeft = 5; // Mola süresi
         statusLabel.textContent = "Mola Zamanı";
         alert("Tebrikler, şimdi mola vakti!");
     }
