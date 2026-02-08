@@ -76,15 +76,39 @@ function switchMode(manualMode = null) {
     updateDisplay();
 }
 
-// 5. MOD BUTONLARI
+// 5.  ÖZEL BUTONLAR (Klasik, Focus, Exam)
 modeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         clearInterval(timerId);
         timerId = null;
         stopTabAlert();
-        const modeText = btn.textContent.toLowerCase();
-        switchMode(modeText.includes('focus'));
+        
+        const modeText = btn.textContent.trim().toLowerCase();
+        
+        // Görseldeki isimlere göre süre atamaları
+        if (modeText === 'klasik') {
+            workInput.value = 25;
+            isWorking = true;
+            statusLabel.textContent = "Klasik Mod";
+        } else if (modeText === 'focus') {
+            workInput.value = 50; // Focus için 50 dk 
+            isWorking = true;
+            statusLabel.textContent = "Derin Odaklanma";
+        } else if (modeText === 'exam') {
+            workInput.value = 75; // Exam için 75 dk
+            isWorking = true;
+            statusLabel.textContent = "Sınav Modu!";
+        }
+
+        // Seçilen süreyi kaydet ve uygula
+        localStorage.setItem('workTime', workInput.value);
+        timeLeft = parseInt(workInput.value) * 60;
+        
+        document.body.classList.remove('work-mode', 'break-mode');
+        document.body.classList.add(isWorking ? 'work-mode' : 'break-mode');
+        updateDisplay();
     });
+});
 });
 
 // 6. ANLIK SÜRE GÜNCELLEME VE KAYIT
