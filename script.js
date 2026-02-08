@@ -1,4 +1,4 @@
-let timeLeft = 25 * 60; 
+let timeLeft = 10; 
 let timerId = null;
 let isWorking = true; // Şu an çalışıyor muyuz, mola mı veriyoruz?
 
