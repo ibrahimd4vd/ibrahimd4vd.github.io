@@ -86,18 +86,23 @@ modeButtons.forEach(btn => {
         const modeText = btn.textContent.trim().toLowerCase();
         
         // Görseldeki isimlere göre süre atamaları
+        document.body.classList.remove('work-mode', 'break-mode');
+        
         if (modeText === 'klasik') {
             workInput.value = 25;
             isWorking = true;
             statusLabel.textContent = "Klasik Mod";
+            document.body.classList.add('work-mode');
         } else if (modeText === 'focus') {
-            workInput.value = 50; // Focus için 50 dk 
+            workInput.value = 50; 
             isWorking = true;
             statusLabel.textContent = "Derin Odaklanma";
+            document.body.classList.add('work-mode');
         } else if (modeText === 'exam') {
-            workInput.value = 75; // Exam için 75 dk
+            workInput.value = 75; 
             isWorking = true;
             statusLabel.textContent = "Sınav Modu!";
+            document.body.classList.add('work-mode');
         }
 
         // Seçilen süreyi kaydet ve uygula
