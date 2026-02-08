@@ -109,7 +109,6 @@ modeButtons.forEach(btn => {
         updateDisplay();
     });
 });
-});
 
 // 6. ANLIK SÜRE GÜNCELLEME VE KAYIT
 function handleInputChange() {
