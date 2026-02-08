@@ -1,50 +1,57 @@
-// 1. Değişkenleri Tanımlama
-let timeLeft = 25 * 60; // Toplam saniye (25 dakika)
+let timeLeft = 25 * 60; 
 let timerId = null;
+let isWorking = true; // Şu an çalışıyor muyuz, mola mı veriyoruz?
 
-// HTML elemanlarına ulaşalım
 const display = document.getElementById('timer-display');
-const startBtn = document.getElementById('start-btn');
-const pauseBtn = document.getElementById('pause-btn');
-const resetBtn = document.getElementById('reset-btn');
+const statusLabel = document.getElementById('status-label'); // HTML'deki başlık
 
-// 2. Ekranı Güncelleyen Fonksiyon
 function updateDisplay() {
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
-    
-    // Saniye tek haneliyse başına 0 ekle (Örn: 05)
     display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-// 3. Başlat Butonu Fonksiyonu
-startBtn.addEventListener('click', () => {
-    // Eğer zamanlayıcı zaten çalışıyorsa tekrar başlatma
+function startTimer() {
     if (timerId !== null) return;
     
     timerId = setInterval(() => {
-        timeLeft--; // Her saniye 1 azalt
-        updateDisplay(); // Yeni süreyi ekrana yaz
+        timeLeft--;
+        updateDisplay();
         
-        // Süre bittiğinde durdur
         if (timeLeft === 0) {
             clearInterval(timerId);
             timerId = null;
-            alert("Süre doldu! Mola vakti.");
+            switchMode(); // Süre bittiğinde modu değiştir
         }
-    }, 1000); // 1000 milisaniye = 1 saniye
-});
+    }, 1000);
+}
 
-// 4. Duraklat Butonu Fonksiyonu
-pauseBtn.addEventListener('click', () => {
+function switchMode() {
+    isWorking = !isWorking; // Modu tam tersine çevir
+    
+    if (isWorking) {
+        timeLeft = 25 * 60; // Çalışma süresi
+        statusLabel.textContent = "Odaklanma Zamanı";
+        alert("Mola bitti, hadi iş başına!");
+    } else {
+        timeLeft = 5 * 60; // Mola süresi
+        statusLabel.textContent = "Mola Zamanı";
+        alert("Tebrikler, şimdi mola vakti!");
+    }
+    updateDisplay();
+}
+
+// Buton dinleyicilerini tekrar bağlayalım
+document.getElementById('start-btn').addEventListener('click', startTimer);
+document.getElementById('pause-btn').addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
 });
-
-// 5. Sıfırla Butonu Fonksiyonu
-resetBtn.addEventListener('click', () => {
+document.getElementById('reset-btn').addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
-    timeLeft = 25 * 60; // Süreyi başa sar
+    isWorking = true;
+    timeLeft = 25 * 60;
+    statusLabel.textContent = "Odaklanma Zamanı";
     updateDisplay();
 });
