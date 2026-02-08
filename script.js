@@ -1,4 +1,5 @@
 // 1. Elementleri Seçme
+const alarmSound = document.getElementById('alarm-sound');
 const display = document.getElementById('timer-display');
 const statusLabel = document.getElementById('status-label');
 const workInput = document.getElementById('work-time');
