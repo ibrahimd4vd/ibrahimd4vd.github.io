@@ -27,6 +27,11 @@ function switchMode() {
     
     // Sayfa renklerini temizle ve yeni modu ekle
     document.body.classList.remove('work-mode', 'break-mode');
+    // ALARM ÇALMA KISMI 
+    if (alarmSound) {
+        alarmSound.currentTime = 0; // Sesi her seferinde başa sarar
+        alarmSound.play().catch(e => {
+            console.log("Ses çalma engellendi! Sayfada bir yere tıklaman gerekebilir.", e);
 
     alarmSound.play();
     
