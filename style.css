@@ -1,4 +1,10 @@
 /* 1. GENEL AYARLAR */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     display: flex;
@@ -6,136 +12,74 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    margin: 0;
     transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     background-color: #f5f6fa;
+    padding: 20px;
 }
 
-/* Mod Temaları */
-body.work-mode { background: linear-gradient(135deg, #ff6b6b, #ee5253); }
-body.break-mode { background: linear-gradient(135deg, #1dd1a1, #10ac84); }
+/* Üst Bar (Header) - PC ve Mobil Renk Eşitleme */
+header {
+    width: 100%;
+    padding: 20px 0;
+    text-align: center;
+    color: white;
+    background-color: #4CAF50; /* İlk açılış rengi */
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: background-color 0.5s ease;
+}
 
-/* Ana Konteyner - PC Varsayılan */
+/* 2. MOD TEMALARI (PC ve Mobil Farkını Ortadan Kaldıran Kısım) */
+/* !important kullanarak tarayıcının renkleri zorla değiştirmesini sağlıyoruz */
+body.work-mode { 
+    background: linear-gradient(135deg, #ff6b6b, #ee5253) !important; 
+}
+body.work-mode header { 
+    background-color: #e74c3c !important; 
+}
+
+body.break-mode { 
+    background: linear-gradient(135deg, #1dd1a1, #10ac84) !important; 
+}
+body.break-mode header { 
+    background-color: #2ecc71 !important; 
+}
+
+/* 3. ANA KONTEYNER (Cam Tasarımı) */
 .pomodoro-container {
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.95);
     padding: 40px;
     border-radius: 30px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
     text-align: center;
-    width: 450px; /* PC'de sabit genişlik */
+    width: 100%;
+    max-width: 450px; /* PC'de kutunun aşırı büyümesini engeller */
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    z-index: 2;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    margin-top: 80px; /* Header'dan kurtarmak için */
 }
 
 #status-label {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #2d3436;
 }
 
 #timer-display {
-    font-size: 90px;
+    font-size: 85px;
     font-weight: 800;
     margin: 15px 0;
     letter-spacing: -3px;
     color: #2d3436;
 }
 
-/* Ayarlar Grubu */
+/* 4. AYARLAR VE INPUTLAR */
 .settings {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 15px;
     margin-bottom: 25px;
-}
-
-.settings label {
-    display: flex;
-    flex-direction: column;
-    font-size: 13px;
-    font-weight: bold;
-}
-
-.settings input {
-    width: 60px;
-    padding: 10px;
-    border-radius: 12px;
-    border: 2px solid #eee;
-    text-align: center;
-    font-size: 16px;
-    margin-top: 5px;
-}
-
-/* Buton Grupları - PC'de yan yana */
-.modes, .controls {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.main-btn, .mode-btn {
-    border: none;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.mode-btn {
-    padding: 10px 15px;
-    background: #f1f2f6;
-    font-size: 13px;
-}
-
-.main-btn {
-    padding: 15px 30px;
-    font-size: 16px;
-}
-
-#start-btn { background: #2ecc71; color: white; }
-#pause-btn { background: #f1c40f; color: white; }
-#reset-btn { background: #95a5a6; color: white; }
-
-/* Efektler */
-.main-btn:hover, .mode-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.main-btn:active { transform: translateY(0); }
-
-/* 2. MOBİL AYARLAR (Sadece 600px'den küçük ekranlarda PC kodunu ezer) */
-@media (max-width: 600px) {
-    .pomodoro-container {
-        width: 85%; /* Telefondaki genişlik */
-        padding: 25px;
-        margin: 20px;
-    }
-
-    #timer-display {
-        font-size: 65px; /* Mobilde sayı küçülsün */
-    }
-
-    .settings {
-        flex-direction: row; /* Yan yana kalsınlar ama küçülsünler */
-        gap: 10px;
-    }
-
-    .modes {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr; /* Modlar yan yana 3'lü */
-        gap: 5px;
-    }
-
-    .controls {
-        flex-direction: column; /* BAŞLAT/DURDUR alt alta gelsin */
-    }
-
-    .main-btn {
-        width: 100%; /* Parmakla basmak için tam genişlik */
-        padding: 18px;
-    }
-}
