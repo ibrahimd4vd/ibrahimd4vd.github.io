@@ -16,14 +16,26 @@ function updateDisplay() {
     let seconds = timeLeft % 60;
     display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
-
-// INPUT DEĞİŞİNCE SÜREYİ GÜNCELLEME (Hatanın çözümü burası)
 // Kullanıcı kutucuktaki sayıyı değiştirdiği an saat de değişsin:
 workInput.addEventListener('input', () => {
     if (isWorking && timerId === null) {
         timeLeft = workInput.value * 60;
         updateDisplay();
     }
+    });
+
+function switchMode() {
+    isWorking = !isWorking;
+    
+    if (isWorking) {
+        timeLeft = workInput.value * 60; // Sabit sayı yerine input değeri!
+        statusLabel.textContent = "Odaklanma Zamanı";
+    } else {
+        timeLeft = breakInput.value * 60; // Sabit sayı yerine input değeri!
+        statusLabel.textContent = "Mola Zamanı";
+    }
+    updateDisplay();
+}
 });
 
 breakInput.addEventListener('input', () => {
