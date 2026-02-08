@@ -9,9 +9,15 @@ const pauseBtn = document.getElementById('pause-btn');
 const resetBtn = document.getElementById('reset-btn');
 const modeButtons = document.querySelectorAll('.mode-btn');
 
-// Fonksiyonel Özellik Değişkenleri
-let sessions = 0;
+// --- LOCALSTORAGE BAŞLANGIÇ DEĞERLERİ ---
+let sessions = parseInt(localStorage.getItem('sessions')) || 0;
 const sessionsDisplay = document.getElementById('sessions-completed');
+if (sessionsDisplay) sessionsDisplay.textContent = sessions;
+
+// Kayıtlı süreleri çek, yoksa varsayılan (25/5) yap
+workInput.value = localStorage.getItem('workTime') || 25;
+breakInput.value = localStorage.getItem('breakTime') || 5;
+
 const todoInput = document.getElementById('todo-input');
 const todoList = document.getElementById('todo-list');
 
@@ -25,15 +31,11 @@ function updateDisplay() {
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
     const timeString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    
     if (display) display.textContent = timeString;
-    
-    if (!alertInterval) {
-        document.title = `(${timeString}) Pomodoro`;
-    }
+    if (!alertInterval) document.title = `(${timeString}) Pomodoro`;
 }
 
-// 3. SEKME BİLDİRİMİ (YANIP SÖNME)
+// 3. SEKME BİLDİRİMİ
 function startTabAlert() {
     if (alertInterval) return;
     let isAlertMsg = true;
@@ -49,27 +51,23 @@ function stopTabAlert() {
     updateDisplay();
 }
 
-// 4. MOD DEĞİŞTİRME VE SEANS SAYACI
+// 4. MOD DEĞİŞTİRME VE SEANS KAYDI
 function switchMode(manualMode = null) {
-    // Eğer butonla tıklandıysa o modu seç, yoksa otomatik değiştir
-    if (manualMode !== null) {
-        isWorking = manualMode;
-    } else {
-        isWorking = !isWorking;
-    }
+    if (manualMode !== null) isWorking = manualMode;
+    else isWorking = !isWorking;
 
-    // Renkleri değiştirirken Karanlık Modu korumak için sadece mod sınıflarını yönetiyoruz
     document.body.classList.remove('work-mode', 'break-mode');
 
-    if (alarmSound && manualMode === null) { // Sadece otomatik geçişte ses çal
-        alarmSound.currentTime = 0;
-        alarmSound.play().catch(() => {});
+    if (manualMode === null) {
+        if (alarmSound) { alarmSound.currentTime = 0; alarmSound.play().catch(() => {}); }
         startTabAlert();
-    }
-
-    if (manualMode === null && !isWorking) {
-        sessions++;
-        if (sessionsDisplay) sessionsDisplay.textContent = sessions;
+        
+        // Çalışma bittiyse seansı artır ve KAYDET
+        if (!isWorking) {
+            sessions++;
+            localStorage.setItem('sessions', sessions);
+            if (sessionsDisplay) sessionsDisplay.textContent = sessions;
+        }
     }
 
     timeLeft = (isWorking ? parseInt(workInput.value) : parseInt(breakInput.value)) * 60;
@@ -78,28 +76,27 @@ function switchMode(manualMode = null) {
     updateDisplay();
 }
 
-// 5. MOD BUTONLARI DİNLEYİCİSİ (EKSİK OLAN KISIM BURASIYDI)
+// 5. MOD BUTONLARI
 modeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         clearInterval(timerId);
         timerId = null;
+        stopTabAlert();
         const modeText = btn.textContent.toLowerCase();
-        if (modeText.includes('focus')) {
-            switchMode(true);
-        } else {
-            switchMode(false);
-        }
+        switchMode(modeText.includes('focus'));
     });
 });
 
-// 6. ANLIK SÜRE GÜNCELLEME
+// 6. ANLIK SÜRE GÜNCELLEME VE KAYIT
 function handleInputChange() {
     if (timerId === null) {
         timeLeft = (isWorking ? parseInt(workInput.value) : parseInt(breakInput.value)) * 60;
         updateDisplay();
+        // Süreleri hafızaya kaydet
+        localStorage.setItem('workTime', workInput.value);
+        localStorage.setItem('breakTime', breakInput.value);
     }
 }
-
 workInput.addEventListener('input', handleInputChange);
 breakInput.addEventListener('input', handleInputChange);
 
@@ -107,7 +104,6 @@ breakInput.addEventListener('input', handleInputChange);
 startBtn.addEventListener('click', () => {
     if (timerId !== null) return;
     stopTabAlert();
-    
     timerId = setInterval(() => {
         timeLeft--;
         updateDisplay();
@@ -125,32 +121,55 @@ pauseBtn.addEventListener('click', () => {
 });
 
 resetBtn.addEventListener('click', () => {
-    clearInterval(timerId);
-    timerId = null;
-    isWorking = true;
-    stopTabAlert();
-    switchMode(true);
+    if(confirm("Tüm veriler (seanslar dahil) sıfırlansın mı?")) {
+        clearInterval(timerId);
+        timerId = null;
+        sessions = 0;
+        localStorage.setItem('sessions', 0);
+        if (sessionsDisplay) sessionsDisplay.textContent = 0;
+        isWorking = true;
+        stopTabAlert();
+        switchMode(true);
+    }
 });
 
-// 8. TODO VE KARANLIK MOD
+// 8. TODO LİSTESİ KAYIT SİSTEMİ
+function saveTodos() {
+    const todos = [];
+    document.querySelectorAll('#todo-list li').forEach(li => {
+        todos.push(li.innerText.replace('✕', '').trim());
+    });
+    localStorage.setItem('todos', JSON.stringify(todos));
+}
+
+function loadTodos() {
+    const savedTodos = JSON.parse(localStorage.getItem('todos') || '[]');
+    savedTodos.forEach(text => addTodoToDOM(text));
+}
+
+function addTodoToDOM(text) {
+    const li = document.createElement('li');
+    li.innerHTML = `${text} <span style="cursor:pointer; color:red; font-weight:bold; margin-left:10px;" onclick="this.parentElement.remove(); saveTodos();">✕</span>`;
+    todoList.appendChild(li);
+}
+
 if (todoInput) {
     todoInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && todoInput.value.trim() !== "") {
-            const li = document.createElement('li');
-            li.innerHTML = `${todoInput.value} <span style="cursor:pointer; color:red; font-weight:bold; margin-left:10px;" onclick="this.parentElement.remove()">✕</span>`;
-            todoList.appendChild(li);
+            addTodoToDOM(todoInput.value);
+            saveTodos();
             todoInput.value = "";
         }
     });
 }
 
+// 9. KARANLIK MOD (Hafıza zaten içindeydi)
 const darkModeToggle = document.getElementById('dark-mode-toggle');
 if (darkModeToggle) {
     if (localStorage.getItem('dark-mode') === 'enabled') {
         document.body.classList.add('dark-theme');
         darkModeToggle.textContent = '☀️';
     }
-
     darkModeToggle.addEventListener('click', () => {
         document.body.classList.toggle('dark-theme');
         const isDark = document.body.classList.contains('dark-theme');
@@ -159,5 +178,6 @@ if (darkModeToggle) {
     });
 }
 
-// İlk çalışma
+// Başlangıç Yüklemesi
+loadTodos();
 updateDisplay();
