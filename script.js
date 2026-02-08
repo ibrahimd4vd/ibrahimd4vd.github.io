@@ -12,6 +12,11 @@ let timerId = null;
 let isWorking = true;
 let timeLeft = parseInt(workInput.value) * 60;
 
+let sessions = 0;
+const sessionsDisplay = document.getElementById('sessions-completed');
+const todoInput = document.getElementById('todo-input');
+const todoList = document.getElementById('todo-list');
+
 // Yanıp sönme efekti için değişken
 let alertInterval = null;
 
@@ -76,6 +81,12 @@ function switchMode() {
         alarmSound.currentTime = 0;
         alarmSound.play().catch(() => console.log("Ses için ekrana dokunmalısın!"));
     }
+    if (!isWorking) { 
+        sessions++;
+        if (sessionsDisplay) {
+            sessionsDisplay.textContent = sessions;
+        }
+    }
     
     if (isWorking) {
         timeLeft = parseInt(workInput.value) * 60;
@@ -139,6 +150,13 @@ modeButtons.forEach(btn => {
         statusLabel.textContent = "Odaklanma Zamanı";
         updateDisplay();
     });
+    if (todoInput) {
+    todoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && todoInput.value.trim() !== "") {
+            const li = document.createElement('li');
+            li.innerHTML = `${todoInput.value} <span style="cursor:pointer; color:red; margin-left:10px;" onclick="this.parentElement.remove()">✕</span>`;
+            todoList.appendChild(li);
+            todoInput.value = "";
 });
 
 updateDisplay();
