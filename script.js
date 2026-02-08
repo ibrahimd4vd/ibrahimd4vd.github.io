@@ -1,57 +1,71 @@
-let timeLeft = 25 * 60; 
-let timerId = null;
-let isWorking = true; // Şu an çalışıyor muyuz, mola mı veriyoruz?
-
+// 1. Elementleri Tanımlama (HTML'deki kutucuklara ve butonlara ulaşıyoruz)
 const display = document.getElementById('timer-display');
-const statusLabel = document.getElementById('status-label'); // HTML'deki başlık
+const statusLabel = document.getElementById('status-label');
+const workInput = document.getElementById('work-time');
+const breakInput = document.getElementById('break-time');
+const startBtn = document.getElementById('start-btn');
+const pauseBtn = document.getElementById('pause-btn');
+const resetBtn = document.getElementById('reset-btn');
 
+// 2. Değişkenler
+let timerId = null;
+let isWorking = true; // Başlangıçta "Çalışma" modundayız
+let timeLeft = workInput.value * 60; // Başlangıç süresini kutucuktaki sayıdan al
+
+// 3. Ekranı Güncelleme Fonksiyonu
 function updateDisplay() {
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
     display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-function startTimer() {
-    if (timerId !== null) return;
+// 4. Mod Değiştirme Fonksiyonu (Çalışma -> Mola veya Mola -> Çalışma)
+function switchMode() {
+    isWorking = !isWorking; // Modu tersine çevir
+    
+    if (isWorking) {
+        timeLeft = workInput.value * 60; // Yeni süreyi inputtan çek
+        statusLabel.textContent = "Odaklanma Zamanı";
+        alert("Mola bitti, odaklanma zamanı!");
+    } else {
+        timeLeft = breakInput.value * 60; // Mola süresini inputtan çek
+        statusLabel.textContent = "Mola Zamanı";
+        alert("Çalışma bitti, mola vakti!");
+    }
+    updateDisplay();
+}
+
+// 5. Başlat Butonu
+startBtn.addEventListener('click', () => {
+    if (timerId !== null) return; // Zaten çalışıyorsa durdurma
     
     timerId = setInterval(() => {
         timeLeft--;
         updateDisplay();
         
-        if (timeLeft === 0) {
+        if (timeLeft <= 0) {
             clearInterval(timerId);
             timerId = null;
-            switchMode(); // Süre bittiğinde modu değiştir
+            switchMode(); // Süre bittiğinde diğer moda geç
         }
     }, 1000);
-}
+});
 
-function switchMode() {
-    isWorking = !isWorking; // Modu tam tersine çevir
-    
-    if (isWorking) {
-        timeLeft = 25 * 60; // Çalışma süresi
-        statusLabel.textContent = "Odaklanma Zamanı";
-        alert("Mola bitti, hadi iş başına!");
-    } else {
-        timeLeft = 5 * 60; // Mola süresi
-        statusLabel.textContent = "Mola Zamanı";
-        alert("Tebrikler, şimdi mola vakti!");
-    }
-    updateDisplay();
-}
-
-// Buton dinleyicilerini tekrar bağlayalım
-document.getElementById('start-btn').addEventListener('click', startTimer);
-document.getElementById('pause-btn').addEventListener('click', () => {
+// 6. Duraklat Butonu
+pauseBtn.addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
 });
-document.getElementById('reset-btn').addEventListener('click', () => {
+
+// 7. Sıfırla Butonu
+resetBtn.addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
-    isWorking = true;
-    timeLeft = 25 * 60;
+    isWorking = true; // Her zaman çalışma moduna geri dön
+    timeLeft = workInput.value * 60; // Güncel input değerini al
     statusLabel.textContent = "Odaklanma Zamanı";
     updateDisplay();
 });
+
+// Sayfa ilk açıldığında ekranı düzgün göster
+updateDisplay();
