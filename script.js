@@ -1,4 +1,3 @@
-// 1. Elementleri Seçme
 const alarmSound = document.getElementById('alarm-sound');
 const display = document.getElementById('timer-display');
 const statusLabel = document.getElementById('status-label');
@@ -9,48 +8,63 @@ const pauseBtn = document.getElementById('pause-btn');
 const resetBtn = document.getElementById('reset-btn');
 const modeButtons = document.querySelectorAll('.mode-btn');
 
-// 2. Değişkenler
 let timerId = null;
 let isWorking = true;
 let timeLeft = parseInt(workInput.value) * 60;
 
-// 3. Ekranı Güncelleme
 function updateDisplay() {
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
     display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-// 4. Mod Değiştirme ve Renk Ayarı
+// SÜRE DEĞİŞTİRME - Hem mobil hem masaüstünde anında güncellenmesi için:
+const handleInputChange = () => {
+    if (timerId === null) { // Sadece sayaç dururken kutudaki sayıya göre ekran değişsin
+        if (isWorking) {
+            timeLeft = (parseInt(workInput.value) || 0) * 60;
+        } else {
+            timeLeft = (parseInt(breakInput.value) || 0) * 60;
+        }
+        updateDisplay();
+    }
+};
+
+// Hem yazarken hem kutudan çıkınca çalışması için iki event:
+workInput.addEventListener('input', handleInputChange);
+workInput.addEventListener('change', handleInputChange);
+breakInput.addEventListener('input', handleInputChange);
+breakInput.addEventListener('change', handleInputChange);
+
 function switchMode() {
     isWorking = !isWorking;
-    
-    // Sayfa renklerini temizle ve yeni modu ekle
     document.body.classList.remove('work-mode', 'break-mode');
-    // ALARM ÇALMA KISMI 
-    if (alarmSound) {
-        alarmSound.currentTime = 0; // Sesi her seferinde başa sarar
-        alarmSound.play().catch(e => {
-            console.log("Ses çalma engellendi! Sayfada bir yere tıklaman gerekebilir.", e);
 
-    alarmSound.play();
+    if (alarmSound) {
+        alarmSound.currentTime = 0;
+        alarmSound.play().catch(() => console.log("Ses için ekrana dokunmalısın!"));
+    }
     
     if (isWorking) {
         timeLeft = parseInt(workInput.value) * 60;
         statusLabel.textContent = "Odaklanma Zamanı";
-        document.body.classList.add('work-mode'); // Kırmızı tema
+        document.body.classList.add('work-mode');
     } else {
         timeLeft = parseInt(breakInput.value) * 60;
         statusLabel.textContent = "Mola Zamanı";
-        document.body.classList.add('break-mode'); // Yeşil tema
+        document.body.classList.add('break-mode');
     }
     updateDisplay();
 }
 
-// 5. BAŞLAT BUTONU
+// BAŞLAT
 startBtn.addEventListener('click', () => {
-    if (timerId !== null) return; // Zaten çalışıyorsa bir daha başlatma
+    if (timerId !== null) return;
     
+    // Mobilde klavyeyi kapatmak için (ekranın kaymasını önler)
+    workInput.blur();
+    breakInput.blur();
+
     timerId = setInterval(() => {
         timeLeft--;
         updateDisplay();
@@ -63,13 +77,13 @@ startBtn.addEventListener('click', () => {
     }, 1000);
 });
 
-// 6. DURAKLAT BUTONU
+// DURAKLAT
 pauseBtn.addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
 });
 
-// 7. SIFIRLA BUTONU
+// SIFIRLA
 resetBtn.addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
@@ -80,7 +94,7 @@ resetBtn.addEventListener('click', () => {
     updateDisplay();
 });
 
-// 8. HAZIR MOD BUTONLARI (Klasik, Focus, Exam)
+// MOD BUTONLARI
 modeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         clearInterval(timerId);
@@ -95,13 +109,4 @@ modeButtons.forEach(btn => {
     });
 });
 
-// 9. Kutucuk değişince saati güncelle
-workInput.addEventListener('input', () => {
-    if (isWorking && timerId === null) {
-        timeLeft = parseInt(workInput.value) * 60;
-        updateDisplay();
-    }
-});
-
-// Başlangıç ayarı
 updateDisplay();
