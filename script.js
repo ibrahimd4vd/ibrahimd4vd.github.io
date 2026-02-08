@@ -1,3 +1,4 @@
+// 1. DEĞİŞKENLER
 const alarmSound = document.getElementById('alarm-sound');
 const display = document.getElementById('timer-display');
 const statusLabel = document.getElementById('status-label');
@@ -8,110 +9,78 @@ const pauseBtn = document.getElementById('pause-btn');
 const resetBtn = document.getElementById('reset-btn');
 const modeButtons = document.querySelectorAll('.mode-btn');
 
-let timerId = null;
-let isWorking = true;
-let timeLeft = parseInt(workInput.value) * 60;
-
+// Yeni Eklenen Fonksiyonel Değişkenler
 let sessions = 0;
 const sessionsDisplay = document.getElementById('sessions-completed');
 const todoInput = document.getElementById('todo-input');
 const todoList = document.getElementById('todo-list');
 
-// Yanıp sönme efekti için değişken
+let timerId = null;
+let isWorking = true;
+let timeLeft = parseInt(workInput.value) * 60;
 let alertInterval = null;
 
-// SEKME BAŞLIĞINI YANIP SÖNDÜRME FONKSİYONU
-function startTabAlert() {
-    if (alertInterval) return; // Zaten çalışıyorsa başlatma
-    
-    let isAlertMsg = true;
-    alertInterval = setInterval(() => {
-        document.title = isAlertMsg ? "!!! SÜRE BİTTİ !!!" : "Pomodoro Sayaç";
-        isAlertMsg = !isAlertMsg;
-    }, 500); // Yarım saniyede bir değişir
-}
-
-// BİLDİRİMİ DURDURMA FONKSİYONU (Başlat veya Reset'e basınca çalışacak)
-function stopTabAlert() {
-    clearInterval(alertInterval);
-    alertInterval = null;
-    // Başlığı normale döndür
-    updateDisplay(); 
-}
-
+// 2. GÖRÜNTÜ GÜNCELLEME
 function updateDisplay() {
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
-    display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    const timeString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    
+    if (display) display.textContent = timeString;
+    
+    if (!alertInterval) {
+        document.title = `(${timeString}) Pomodoro`;
+    }
 }
 
-// SÜRE DEĞİŞTİRME - Hem mobil hem masaüstünde anında güncellenmesi için:
-const handleInputChange = () => {
-    if (timerId === null) { // Sadece sayaç dururken kutudaki sayıya göre ekran değişsin
-        let workVal = parseInt(workInput.value) || 0;
-        let breakVal = parseInt(breakInput.value) || 0;
-        
-        // Çalışma süresini 180 ile sınırla
-        if (workVal > 180) { workInput.value = 180; workVal = 180; }
-        if (workVal < 1 && workInput.value !== "") { workInput.value = 1; workVal = 1; }
-        
-        // Mola süresini 60 ile sınırla
-        if (breakVal > 60) { breakInput.value = 60; breakVal = 60; }
-        if (breakVal < 1 && breakInput.value !== "") { breakInput.value = 1; breakVal = 1; }
-      if (isWorking) {
-            timeLeft = workVal * 60;
-        } else {
-            timeLeft = breakVal * 60;
-        }
-        updateDisplay();
-    }
-};
+// 3. SEKME BİLDİRİMİ (YANIP SÖNME)
+function startTabAlert() {
+    if (alertInterval) return;
+    let isAlertMsg = true;
+    alertInterval = setInterval(() => {
+        document.title = isAlertMsg ? "!!! SÜRE BİTTİ !!!" : "⏰ Pomodoro";
+        isAlertMsg = !isAlertMsg;
+    }, 600);
+}
 
-// Hem yazarken hem kutudan çıkınca çalışması için iki event:
-workInput.addEventListener('input', handleInputChange);
-workInput.addEventListener('change', handleInputChange);
-breakInput.addEventListener('input', handleInputChange);
-breakInput.addEventListener('change', handleInputChange);
+function stopTabAlert() {
+    clearInterval(alertInterval);
+    alertInterval = null;
+    updateDisplay();
+}
 
+// 4. MOD DEĞİŞTİRME VE SEANS SAYACI
 function switchMode() {
     isWorking = !isWorking;
     document.body.classList.remove('work-mode', 'break-mode');
 
     if (alarmSound) {
         alarmSound.currentTime = 0;
-        alarmSound.play().catch(() => console.log("Ses için ekrana dokunmalısın!"));
+        alarmSound.play().catch(() => {});
     }
-    if (!isWorking) { 
+
+    // Seans Sayacı: Çalışma bittiğinde artır
+    if (!isWorking) {
         sessions++;
-        if (sessionsDisplay) {
-            sessionsDisplay.textContent = sessions;
-        }
+        if (sessionsDisplay) sessionsDisplay.textContent = sessions;
     }
-    
-    if (isWorking) {
-        timeLeft = parseInt(workInput.value) * 60;
-        statusLabel.textContent = "Odaklanma Zamanı";
-        document.body.classList.add('work-mode');
-    } else {
-        timeLeft = parseInt(breakInput.value) * 60;
-        statusLabel.textContent = "Mola Zamanı";
-        document.body.classList.add('break-mode');
-    }
+
+    startTabAlert();
+
+    timeLeft = (isWorking ? parseInt(workInput.value) : parseInt(breakInput.value)) * 60;
+    statusLabel.textContent = isWorking ? "Odaklanma Zamanı" : "Mola Zamanı";
+    document.body.classList.add(isWorking ? 'work-mode' : 'break-mode');
     updateDisplay();
 }
 
-// BAŞLAT
+// 5. EVENT LISTENERS (DİNLEYİCİLER)
 startBtn.addEventListener('click', () => {
     if (timerId !== null) return;
+    stopTabAlert();
     
-    // Mobilde klavyeyi kapatmak için (ekranın kaymasını önler)
-    workInput.blur();
-    breakInput.blur();
-
     timerId = setInterval(() => {
         timeLeft--;
         updateDisplay();
-        
         if (timeLeft <= 0) {
             clearInterval(timerId);
             timerId = null;
@@ -120,43 +89,33 @@ startBtn.addEventListener('click', () => {
     }, 1000);
 });
 
-// DURAKLAT
 pauseBtn.addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
 });
 
-// SIFIRLA
 resetBtn.addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
     isWorking = true;
+    stopTabAlert();
     document.body.classList.remove('work-mode', 'break-mode');
     timeLeft = parseInt(workInput.value) * 60;
     statusLabel.textContent = "Odaklanma Zamanı";
     updateDisplay();
 });
 
-// MOD BUTONLARI
-modeButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        clearInterval(timerId);
-        timerId = null;
-        workInput.value = btn.getAttribute('data-work');
-        breakInput.value = btn.getAttribute('data-break');
-        isWorking = true;
-        document.body.classList.remove('work-mode', 'break-mode');
-        timeLeft = parseInt(workInput.value) * 60;
-        statusLabel.textContent = "Odaklanma Zamanı";
-        updateDisplay();
-    });
-    if (todoInput) {
+// To-Do List Ekleme
+if (todoInput) {
     todoInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && todoInput.value.trim() !== "") {
             const li = document.createElement('li');
             li.innerHTML = `${todoInput.value} <span style="cursor:pointer; color:red; margin-left:10px;" onclick="this.parentElement.remove()">✕</span>`;
             todoList.appendChild(li);
             todoInput.value = "";
-});
+        }
+    });
+}
 
+// İlk açılışta süreyi göster
 updateDisplay();
