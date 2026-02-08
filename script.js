@@ -39,6 +39,8 @@ function startTimer() {
 // Mod Değiştirme (Çalışma <-> Mola)
 function switchMode() {
     isWorking = !isWorking;
+
+    document.body.classList.remove('work-mode', 'break-mode');
     
     if (isWorking) {
         timeLeft = parseInt(workInput.value) * 60;
