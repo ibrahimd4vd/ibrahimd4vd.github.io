@@ -28,7 +28,6 @@ function updateDisplay() {
     
     if (display) display.textContent = timeString;
     
-    // Sekme yanıp sönmüyorsa başlıkta süreyi göster
     if (!alertInterval) {
         document.title = `(${timeString}) Pomodoro`;
     }
@@ -51,22 +50,27 @@ function stopTabAlert() {
 }
 
 // 4. MOD DEĞİŞTİRME VE SEANS SAYACI
-function switchMode() {
-    isWorking = !isWorking;
-    document.body.classList.remove('work-mode', 'break-mode');
-
-    if (alarmSound) {
-        alarmSound.currentTime = 0;
-        alarmSound.play().catch(() => {});
+function switchMode(manualMode = null) {
+    // Eğer butonla tıklandıysa o modu seç, yoksa otomatik değiştir
+    if (manualMode !== null) {
+        isWorking = manualMode;
+    } else {
+        isWorking = !isWorking;
     }
 
-    // Seans Sayacı: Çalışma bittiğinde artır
-    if (!isWorking) {
+    // Renkleri değiştirirken Karanlık Modu korumak için sadece mod sınıflarını yönetiyoruz
+    document.body.classList.remove('work-mode', 'break-mode');
+
+    if (alarmSound && manualMode === null) { // Sadece otomatik geçişte ses çal
+        alarmSound.currentTime = 0;
+        alarmSound.play().catch(() => {});
+        startTabAlert();
+    }
+
+    if (manualMode === null && !isWorking) {
         sessions++;
         if (sessionsDisplay) sessionsDisplay.textContent = sessions;
     }
-
-    startTabAlert();
 
     timeLeft = (isWorking ? parseInt(workInput.value) : parseInt(breakInput.value)) * 60;
     statusLabel.textContent = isWorking ? "Odaklanma Zamanı" : "Mola Zamanı";
@@ -74,7 +78,21 @@ function switchMode() {
     updateDisplay();
 }
 
-// 5. ANLIK SÜRE GÜNCELLEME (Input dinleyicisi)
+// 5. MOD BUTONLARI DİNLEYİCİSİ (EKSİK OLAN KISIM BURASIYDI)
+modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        clearInterval(timerId);
+        timerId = null;
+        const modeText = btn.textContent.toLowerCase();
+        if (modeText.includes('focus')) {
+            switchMode(true);
+        } else {
+            switchMode(false);
+        }
+    });
+});
+
+// 6. ANLIK SÜRE GÜNCELLEME
 function handleInputChange() {
     if (timerId === null) {
         timeLeft = (isWorking ? parseInt(workInput.value) : parseInt(breakInput.value)) * 60;
@@ -85,7 +103,7 @@ function handleInputChange() {
 workInput.addEventListener('input', handleInputChange);
 breakInput.addEventListener('input', handleInputChange);
 
-// 6. ANA KONTROLLER (Event Listeners)
+// 7. ANA KONTROLLER
 startBtn.addEventListener('click', () => {
     if (timerId !== null) return;
     stopTabAlert();
@@ -111,13 +129,10 @@ resetBtn.addEventListener('click', () => {
     timerId = null;
     isWorking = true;
     stopTabAlert();
-    document.body.classList.remove('work-mode', 'break-mode');
-    timeLeft = parseInt(workInput.value) * 60;
-    statusLabel.textContent = "Odaklanma Zamanı";
-    updateDisplay();
+    switchMode(true);
 });
 
-// To-Do List Ekleme Mantığı
+// 8. TODO VE KARANLIK MOD
 if (todoInput) {
     todoInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && todoInput.value.trim() !== "") {
@@ -128,25 +143,21 @@ if (todoInput) {
         }
     });
 }
+
 const darkModeToggle = document.getElementById('dark-mode-toggle');
-
-// Sayfa yüklendiğinde eski tercihi kontrol et
-if (localStorage.getItem('dark-mode') === 'enabled') {
-    document.body.classList.add('dark-theme');
-    darkModeToggle.textContent = '☀️'; // Güneş ikonu yap
-}
-
-darkModeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-theme');
-    
-    if (document.body.classList.contains('dark-theme')) {
-        localStorage.setItem('dark-mode', 'enabled');
+if (darkModeToggle) {
+    if (localStorage.getItem('dark-mode') === 'enabled') {
+        document.body.classList.add('dark-theme');
         darkModeToggle.textContent = '☀️';
-    } else {
-        localStorage.setItem('dark-mode', 'disabled');
-        darkModeToggle.textContent = '🌙';
     }
-});
+
+    darkModeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-theme');
+        const isDark = document.body.classList.contains('dark-theme');
+        localStorage.setItem('dark-mode', isDark ? 'enabled' : 'disabled');
+        darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+    });
+}
 
 // İlk çalışma
 updateDisplay();
