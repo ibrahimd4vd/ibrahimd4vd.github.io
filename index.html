@@ -3,11 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomodoro Sitesi</title>
+    <title>Pomodoro Zamanlayıcı</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Favicon (domates emojisi) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍅</text></svg>">
 </head>
 <body>
+    <noscript>
+        <div style="position:fixed; top:0; left:0; right:0; background:red; color:white; padding:10px; text-align:center; z-index:9999;">
+            ⚠️ Bu site JavaScript gerektirir. Lütfen tarayıcınızda JavaScript'i etkinleştirin.
+        </div>
+    </noscript>
+    
     <header>
         <h1>Pomodoro Zamanlayıcı</h1>
         <p>Verimli çalışmak için modunu seç!</p>
@@ -19,39 +27,44 @@
             <h2 id="status-label">Odaklanma Zamanı</h2>
             
             <div class="settings">
-    <label>Çalışma (dk): <input type="number" id="work-time" value="25" min="1" max="180"></label>
-    <label>Mola (dk): <input type="number" id="break-time" value="5" min="1" max="60"></label>
+                <label>Çalışma (dk): 
+                    <input type="number" id="work-time" min="1" max="180">
+                </label>
+                <label>Mola (dk): 
+                    <input type="number" id="break-time" min="1" max="60">
+                </label>
             </div>
 
             <div class="modes">
-                <button class="mode-btn" data-work="25" data-break="5">Klasik</button>
-                <button class="mode-btn" data-work="50" data-break="10">Focus</button>
-                <button class="mode-btn" data-work="75" data-break="15">Exam</button>
+                <button class="mode-btn" data-mode="klasik" data-work="25" data-break="5">Klasik</button>
+                <button class="mode-btn" data-mode="focus" data-work="50" data-break="10">Focus</button>
+                <button class="mode-btn" data-mode="exam" data-work="75" data-break="15">Exam</button>
             </div>
 
-            <div id="timer-display">25:00</div>
+            <div id="timer-display" aria-live="polite" aria-atomic="true">25:00</div>
             
             <div class="controls">
                 <button id="start-btn" class="main-btn">Başlat</button>
                 <button id="pause-btn" class="main-btn">Duraklat</button>
                 <button id="reset-btn" class="main-btn">Sıfırla</button>
             </div>
+            
             <div class="session-counter">
                 Tamamlanan Seans: <span id="sessions-completed">0</span>
             </div>
 
             <div class="todo-section">
-               <input type="text" id="todo-input" placeholder="Şu an neye odaklanacaksın?">
-               <ul id="todo-list"></ul>
-        </div>
+                <input type="text" id="todo-input" placeholder="Yapılacak işi yaz ve Enter'a bas...">
+                <ul id="todo-list" role="list"></ul>
+            </div>
         </section>
     </main>
 
     <footer>
-        <p>© 2026 Tüm Hakları Saklıdır.| Powered by d4ryl </p>
+        <p>© 2026 Tüm Hakları Saklıdır. | Powered by d4ryl</p>
     </footer>
     
-   <audio id="alarm-sound" src="alarm.mp3"></audio>
+    <audio id="alarm-sound" src="alarm.mp3" preload="auto"></audio>
 
     <script src="script.js"></script>
 </body>
