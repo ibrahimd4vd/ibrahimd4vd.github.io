@@ -1,4 +1,3 @@
-// 1. Elementleri Tanımlama (HTML'deki kutucuklara ve butonlara ulaşıyoruz)
 const display = document.getElementById('timer-display');
 const statusLabel = document.getElementById('status-label');
 const workInput = document.getElementById('work-time');
@@ -7,37 +6,36 @@ const startBtn = document.getElementById('start-btn');
 const pauseBtn = document.getElementById('pause-btn');
 const resetBtn = document.getElementById('reset-btn');
 
-// 2. Değişkenler
 let timerId = null;
-let isWorking = true; // Başlangıçta "Çalışma" modundayız
-let timeLeft = workInput.value * 60; // Başlangıç süresini kutucuktaki sayıdan al
+let isWorking = true;
+let timeLeft = workInput.value * 60;
 
-// 3. Ekranı Güncelleme Fonksiyonu
+// EKRANI GÜNCELLEME (Dakika ve Saniye hesaplama)
 function updateDisplay() {
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
     display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-// 4. Mod Değiştirme Fonksiyonu (Çalışma -> Mola veya Mola -> Çalışma)
-function switchMode() {
-    isWorking = !isWorking; // Modu tersine çevir
-    
-    if (isWorking) {
-        timeLeft = workInput.value * 60; // Yeni süreyi inputtan çek
-        statusLabel.textContent = "Odaklanma Zamanı";
-        alert("Mola bitti, odaklanma zamanı!");
-    } else {
-        timeLeft = breakInput.value * 60; // Mola süresini inputtan çek
-        statusLabel.textContent = "Mola Zamanı";
-        alert("Çalışma bitti, mola vakti!");
+// INPUT DEĞİŞİNCE SÜREYİ GÜNCELLEME (Hatanın çözümü burası)
+// Kullanıcı kutucuktaki sayıyı değiştirdiği an saat de değişsin:
+workInput.addEventListener('input', () => {
+    if (isWorking && timerId === null) {
+        timeLeft = workInput.value * 60;
+        updateDisplay();
     }
-    updateDisplay();
-}
+});
 
-// 5. Başlat Butonu
+breakInput.addEventListener('input', () => {
+    if (!isWorking && timerId === null) {
+        timeLeft = breakInput.value * 60;
+        updateDisplay();
+    }
+});
+
+// BAŞLAT
 startBtn.addEventListener('click', () => {
-    if (timerId !== null) return; // Zaten çalışıyorsa durdurma
+    if (timerId !== null) return;
     
     timerId = setInterval(() => {
         timeLeft--;
@@ -46,26 +44,41 @@ startBtn.addEventListener('click', () => {
         if (timeLeft <= 0) {
             clearInterval(timerId);
             timerId = null;
-            switchMode(); // Süre bittiğinde diğer moda geç
+            switchMode();
         }
     }, 1000);
 });
 
-// 6. Duraklat Butonu
+// MOD DEĞİŞTİRME
+function switchMode() {
+    isWorking = !isWorking;
+    if (isWorking) {
+        timeLeft = workInput.value * 60;
+        statusLabel.textContent = "Odaklanma Zamanı";
+        alert("Çalışma zamanı!");
+    } else {
+        timeLeft = breakInput.value * 60;
+        statusLabel.textContent = "Mola Zamanı";
+        alert("Mola zamanı!");
+    }
+    updateDisplay();
+}
+
+// DURAKLAT
 pauseBtn.addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
 });
 
-// 7. Sıfırla Butonu
+// SIFIRLA
 resetBtn.addEventListener('click', () => {
     clearInterval(timerId);
     timerId = null;
-    isWorking = true; // Her zaman çalışma moduna geri dön
-    timeLeft = workInput.value * 60; // Güncel input değerini al
+    isWorking = true;
+    timeLeft = workInput.value * 60;
     statusLabel.textContent = "Odaklanma Zamanı";
     updateDisplay();
 });
 
-// Sayfa ilk açıldığında ekranı düzgün göster
+// Sayfa ilk açıldığında hazırla
 updateDisplay();
