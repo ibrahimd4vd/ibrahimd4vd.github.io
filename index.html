@@ -3,34 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İbrahim'in Sitesi</title>
+    <title>İbrahim'in Pomodoro Sitesi</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Merhaba, ben İbrahim!</h1>
-        <p>Bu benim ilk GitHub Pages sitem.</p>
+        <h1>Pomodoro Zamanlayıcı</h1>
+        <p>Verimli çalışmak için modunu seç!</p>
     </header>
-<div class="settings">
-    <label>Çalışma (dk): <input type="number" id="work-time" value="25" min="1" max="60"></label>
-    <label>Mola (dk): <input type="number" id="break-time" value="5" min="1" max="30"></label>
-</div>
-   <main>
-    <section class="pomodoro-container">
-        <h2 id="status-label">Odaklanma Zamanı</h2>
-        <div id="timer-display">25:00</div>
-        
-        <div class="controls">
-            <button id="start-btn">Başlat</button>
-            <button id="pause-btn">Duraklat</button>
-            <button id="reset-btn">Sıfırla</button>
-        </div>
-    </section>
-</main>
 
-<script src="script.js"></script>
+    <main>
+        <section class="pomodoro-container">
+            <h2 id="status-label">Odaklanma Zamanı</h2>
+            
+            <div class="settings">
+                <label>Çalışma (dk): <input type="number" id="work-time" value="25"></label>
+                <label>Mola (dk): <input type="number" id="break-time" value="5"></label>
+            </div>
+
+            <div class="modes">
+                <button class="mode-btn" data-work="25" data-break="5">Klasik</button>
+                <button class="mode-btn" data-work="50" data-break="10">Focus</button>
+                <button class="mode-btn" data-work="75" data-break="15">Exam</button>
+            </div>
+
+            <div id="timer-display">25:00</div>
+            
+            <div class="controls">
+                <button id="start-btn" class="main-btn">Başlat</button>
+                <button id="pause-btn" class="main-btn">Duraklat</button>
+                <button id="reset-btn" class="main-btn">Sıfırla</button>
+            </div>
+        </section>
+    </main>
+
     <footer>
-        <p>© 2026 İbrahim</p>
+        <p>© 2026 İbrahim | Frontend Yolculuğu</p>
     </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
