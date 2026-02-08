@@ -70,6 +70,8 @@ function switchMode(manualMode = null) {
             sessions++;
             localStorage.setItem('sessions', sessions);
             if (sessionsDisplay) sessionsDisplay.textContent = sessions;
+
+            recordCompletedSession(parseInt(workInput.value));
             
             // 4 Pomodoro'da 1 uzun mola (15 dakika)
             if (sessions % 4 === 0) {
@@ -272,3 +274,160 @@ function initializeMode() {
 // Başlangıç Yüklemesi
 loadTodos();
 initializeMode();
+loadStats();
+// ==================== İSTATİSTİK SİSTEMİ ====================
+
+// 1. İSTATİSTİK NESNESİ - localStorage'dan yükle veya oluştur
+let stats = {
+    totalSessions: 0,
+    totalFocusMinutes: 0,
+    weeklyGoal: 20, // Varsayılan haftalık hedef
+    history: {}, // Günlük kayıtlar
+    lastUpdated: new Date().toDateString()
+};
+
+// 2. İSTATİSTİKLERİ YÜKLE
+function loadStats() {
+    const savedStats = localStorage.getItem('pomodoro_stats');
+    if (savedStats) {
+        stats = JSON.parse(savedStats);
+        
+        // Eski günleri temizle (30 günden eski)
+        cleanupOldStats();
+        
+        // Bugünkü tarihi kontrol et, yeni günse sıfırla
+        checkNewDay();
+    }
+    updateStatsDisplay(); // Ekranı güncelle
+}
+
+// 3. YENİ GÜN KONTROLÜ
+function checkNewDay() {
+    const today = new Date().toDateString();
+    
+    if (stats.lastUpdated !== today) {
+        // Yeni gün - önceki günü history'ye kaydet
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toDateString();
+        
+        // Eğer dünün kaydı yoksa oluştur
+        if (!stats.history[yesterdayStr]) {
+            stats.history[yesterdayStr] = {
+                sessions: stats.totalSessions,
+                focusMinutes: stats.totalFocusMinutes
+            };
+        }
+        
+        // Bugünkü istatistikleri sıfırla
+        stats.totalSessions = 0;
+        stats.totalFocusMinutes = 0;
+        stats.lastUpdated = today;
+        
+        saveStats(); // Kaydet
+    }
+}
+
+// 4. İSTATİSTİK KAYDET
+function saveStats() {
+    localStorage.setItem('pomodoro_stats', JSON.stringify(stats));
+}
+
+// 5. POMODORO TAMAMLANINCA ÇAĞRILACAK FONKSİYON
+function recordCompletedSession(duration) {
+    // Bugünkü tarih
+    const today = new Date().toDateString();
+    
+    // İstatistikleri güncelle
+    stats.totalSessions++;
+    stats.totalFocusMinutes += duration;
+    stats.lastUpdated = today;
+    
+    // Bugünkü kaydı history'ye ekle/güncelle
+    if (!stats.history[today]) {
+        stats.history[today] = {
+            sessions: 0,
+            focusMinutes: 0
+        };
+    }
+    
+    stats.history[today].sessions++;
+    stats.history[today].focusMinutes += duration;
+    
+    // Kaydet
+    saveStats();
+    updateStatsDisplay();
+    
+    // Haftalık hedef kontrolü
+    checkWeeklyGoal();
+}
+
+// 6. ESKİ KAYITLARI TEMİZLE (30 günden eski)
+function cleanupOldStats() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    Object.keys(stats.history).forEach(dateStr => {
+        const recordDate = new Date(dateStr);
+        if (recordDate < thirtyDaysAgo) {
+            delete stats.history[dateStr];
+        }
+    });
+}
+
+// 7. HAFTALIK HEDEF KONTROLÜ
+function checkWeeklyGoal() {
+    const weeklySessions = getWeeklySessions();
+    
+    if (weeklySessions >= stats.weeklyGoal) {
+        // Hedefe ulaşıldı!
+        showAchievement(`🎉 Tebrikler! Haftalık hedefinize ulaştınız: ${weeklySessions}/${stats.weeklyGoal} pomodoro`);
+    }
+}
+
+// 8. HAFTALIK TOPLAM SEANS HESAPLA
+function getWeeklySessions() {
+    let weeklyTotal = 0;
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    Object.keys(stats.history).forEach(dateStr => {
+        const recordDate = new Date(dateStr);
+        if (recordDate >= sevenDaysAgo) {
+            weeklyTotal += stats.history[dateStr].sessions || 0;
+        }
+    });
+    
+    return weeklyTotal;
+}
+
+// 9. BAŞARI MESAJI GÖSTER
+function showAchievement(message) {
+    // Basit bir alert ile başlayalım, sonra daha güzel yaparız
+    console.log("🎯 " + message);
+    
+    // Ekranda geçici mesaj gösterme (sonra geliştireceğiz)
+    const achievementEl = document.createElement('div');
+    achievementEl.className = 'achievement-message';
+    achievementEl.innerHTML = `
+        <i class="fas fa-trophy"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(achievementEl);
+    
+    setTimeout(() => {
+        achievementEl.remove();
+    }, 5000);
+}
+
+// 10. İSTATİSTİKLERİ EKRANDA GÜNCELLE (şimdilik konsola yaz)
+function updateStatsDisplay() {
+    console.log("📊 İstatistikler Güncellendi:", {
+        "Bugünkü Seans": stats.totalSessions,
+        "Bugünkü Odak Süresi (dk)": stats.totalFocusMinutes,
+        "Ortalama Süre": stats.totalSessions > 0 ? 
+            Math.round(stats.totalFocusMinutes / stats.totalSessions) : 0,
+        "Haftalık Toplam": getWeeklySessions(),
+        "Hedef": stats.weeklyGoal
+    });
+}
