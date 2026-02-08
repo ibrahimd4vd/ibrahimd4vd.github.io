@@ -21,10 +21,20 @@ function updateDisplay() {
 // SÜRE DEĞİŞTİRME - Hem mobil hem masaüstünde anında güncellenmesi için:
 const handleInputChange = () => {
     if (timerId === null) { // Sadece sayaç dururken kutudaki sayıya göre ekran değişsin
-        if (isWorking) {
-            timeLeft = (parseInt(workInput.value) || 0) * 60;
+        let workVal = parseInt(workInput.value) || 0;
+        let breakVal = parseInt(breakInput.value) || 0;
+        
+        // Çalışma süresini 180 ile sınırla
+        if (workVal > 180) { workInput.value = 180; workVal = 180; }
+        if (workVal < 1 && workInput.value !== "") { workInput.value = 1; workVal = 1; }
+        
+        // Mola süresini 60 ile sınırla
+        if (breakVal > 60) { breakInput.value = 60; breakVal = 60; }
+        if (breakVal < 1 && breakInput.value !== "") { breakInput.value = 1; breakVal = 1; }
+      if (isWorking) {
+            timeLeft = workVal * 60;
         } else {
-            timeLeft = (parseInt(breakInput.value) || 0) * 60;
+            timeLeft = breakVal * 60;
         }
         updateDisplay();
     }
